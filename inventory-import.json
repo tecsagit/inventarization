@@ -1,6 +1,6 @@
 {
-  "version": "recover-user-items-v1",
-  "restoreVersion": "recover-user-items-v1",
+  "version": "recover-user-items-v2",
+  "restoreVersion": "recover-user-items-v2",
   "employees": [
     {
       "id": "6e44267b-edf6-4aef-9895-5035e9cedb3c",
@@ -16,7 +16,7 @@
     },
     {
       "id": "b4abb52b-2a26-43df-8d33-4e2a9b40c4c5",
-      "name": "Вінник Олександр"
+      "name": "Вінник Олександр Павлович"
     },
     {
       "id": "35507b88-4056-477d-84fa-5a2ae3d15d20",
@@ -27,12 +27,12 @@
       "name": "Гаранін Володимир Миколайович"
     },
     {
-      "id": "6c441e4b-858b-4842-b5cf-f097249a1ba3",
-      "name": "Губарені Євген Віталійович"
-    },
-    {
       "id": "6345c6f6-119f-45d3-b76e-4e56bf6d2b3b",
       "name": "Гізатуліна Олена Віталіївна"
+    },
+    {
+      "id": "6c441e4b-858b-4842-b5cf-f097249a1ba3",
+      "name": "Губарені Євген Віталійович"
     },
     {
       "id": "55bbe7e1-fe12-4caa-aecc-30b154e309e7",
@@ -56,11 +56,11 @@
     },
     {
       "id": "dff35acb-c94d-4995-b6db-223896573c65",
-      "name": "Кошовий Юрій"
+      "name": "Кошовий Юрій Васильович"
     },
     {
       "id": "ee929314-02fe-4cde-9bd3-618ea1a71b4b",
-      "name": "Кравченко Ігор"
+      "name": "Кравченко Ігор Анатолійович"
     },
     {
       "id": "92999192-5912-48e9-8b23-a8ce56b393e7",
@@ -84,7 +84,7 @@
     },
     {
       "id": "092b772c-1bb1-4de9-9bd9-46e3618cb6a7",
-      "name": "Нестеренко Олейсій Борисович"
+      "name": "Нестеренко Олексій Борисович"
     },
     {
       "id": "e492db4d-ff5e-41cf-b09b-7a9b4f5697d2",
@@ -96,7 +96,7 @@
     },
     {
       "id": "cf6438d2-f5cb-40a4-aa7e-084db3b874b7",
-      "name": "Петренко Владислав"
+      "name": "Петренко Владислав Олекссандрович"
     },
     {
       "id": "baefee29-aa86-4caf-a3b9-ec2461970fe6",
@@ -1593,14 +1593,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
       "note": "№ п/п у Excel: 382\nРахунок 11",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:21:06.099Z"
     },
     {
       "id": "7269bfdc-f969-40f8-bc2a-fc51a3ff78be",
@@ -1608,14 +1608,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Автозаводська",
       "employeeId": "",
       "specs": "",
       "note": "№ п/п у Excel: 133\nРахунок 10",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:21:14.214Z"
     },
     {
       "id": "cb4069fa-0ad1-417d-b191-46ede9149325",
@@ -3498,14 +3498,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
       "note": "№ п/п у Excel: 305\nРахунок 11",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:26:29.721Z"
     },
     {
       "id": "8311d1b8-4095-4a4d-b265-3ba2b2f1473e",
@@ -3963,14 +3963,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Автозаводська",
       "employeeId": "",
       "specs": "",
       "note": "№ п/п у Excel: 353\nРахунок 11",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:28:09.286Z"
     },
     {
       "id": "ff09cb28-063f-40cc-859e-332a689d5a5e",
@@ -4349,33 +4349,33 @@
     },
     {
       "id": "e83d4e9d-fbaf-4e0e-8faa-38b335c65aa4",
-      "name": "мікрофон Fifine",
+      "name": "Мікрофон Fifine",
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:21:48.593Z"
     },
     {
       "id": "ab197164-5ba7-4b19-9ab5-e4db6b480aed",
-      "name": "відеокамери A4Tech HD1080",
-      "model": "",
+      "name": "Відеокамера A4Tech HD1080",
+      "model": "A4Tech HD1080",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:19:07.762Z"
     },
     {
       "id": "01f61bc3-92ce-4afa-b34b-12ef720e80f7",
@@ -4383,14 +4383,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:25:10.182Z"
     },
     {
       "id": "5c77d558-72f1-4a44-9889-bbf609bd56ca",
@@ -4398,14 +4398,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:29:48.576Z"
     },
     {
       "id": "d3d20b33-32a9-41b9-af8c-87163dd134eb",
@@ -4413,14 +4413,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:24:57.070Z"
     },
     {
       "id": "3bad6261-9873-4fc9-8d4f-5ad80a0c98b2",
@@ -4428,14 +4428,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:24:10.013Z"
     },
     {
       "id": "0fa83675-4fc0-4928-bbc1-55bae56c017f",
@@ -4443,14 +4443,14 @@
       "model": "",
       "invNumber": "",
       "working": false,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
       "note": "Джерело: аркуш «Без С1»",
       "action": "",
       "problems": "не працює\nвідсутній блок живлення на задній частині корпуса",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:23:53.835Z"
     },
     {
       "id": "c76dbbfd-4696-4c2e-8513-e7a6aef38205",
@@ -4458,14 +4458,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:26:20.096Z"
     },
     {
       "id": "3e92f251-b20c-41ee-86ba-9f237ac36b0d",
@@ -4518,14 +4518,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:29:38.320Z"
     },
     {
       "id": "533a2534-f413-47c0-a0a0-5cb8fe1c177c",
@@ -4533,14 +4533,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:26:02.888Z"
     },
     {
       "id": "bf691a6a-19bd-4f57-8175-af8d21428b78",
@@ -4548,14 +4548,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:26:08.650Z"
     },
     {
       "id": "024d31c3-39b5-4ba6-969d-4a3e767f6da3",
@@ -4563,14 +4563,14 @@
       "model": "",
       "invNumber": "",
       "working": true,
-      "site": "Загальний склад",
+      "site": "Ігорівська",
       "employeeId": "",
       "specs": "",
-      "note": "Джерело: аркуш «Без С1»",
+      "note": "",
       "action": "",
       "problems": "",
       "createdAt": "2026-07-15T12:36:16.356704+00:00",
-      "updatedAt": "2026-07-15T12:36:16.356704+00:00"
+      "updatedAt": "2026-07-15T14:26:14.433Z"
     },
     {
       "id": "cb58e427-9186-4662-b7f9-8d8e9852df02",
@@ -4783,19 +4783,79 @@
       "updatedAt": "2026-07-15T13:35:33.502Z"
     },
     {
-      "id": "f7073ef1-b2de-45b8-9bbc-a80e80edaea7",
-      "createdAt": "2026-07-15T13:44:27.545Z",
-      "name": "Мобільний телефон Samsung Galaxy A06 (SM-A065F/DS) 128gb",
-      "model": "SM-A065F/DS",
+      "id": "6b17b374-2abc-4e4d-bb16-54095af8f050",
+      "createdAt": "2026-07-15T14:44:07.139Z",
+      "name": "Мобільний телефон Samsung Galaxy A02 2/32GB Black (SM-A022GZKBSEK)",
+      "model": "",
+      "invNumber": "",
+      "working": true,
+      "site": "Загальний склад",
+      "employeeId": "",
+      "specs": "",
+      "note": "№ п/п у Excel: 260\nРахунок 11",
+      "action": "",
+      "problems": "",
+      "updatedAt": "2026-07-15T14:44:07.139Z"
+    },
+    {
+      "id": "b54c8b58-2f70-4d82-b6fc-68b41fbcb913",
+      "createdAt": "2026-07-15T14:47:10.097Z",
+      "name": "Телефон Redmi",
+      "model": "SN: 43082/62WU15425",
       "invNumber": "",
       "working": true,
       "site": "Ігорівська",
-      "employeeId": "1812464a-2063-482c-b395-aacf56999bc5",
+      "employeeId": "dff35acb-c94d-4995-b6db-223896573c65",
+      "specs": "",
+      "note": "уточнити модель телефона",
+      "action": "",
+      "problems": "",
+      "updatedAt": "2026-07-15T14:47:10.097Z"
+    },
+    {
+      "id": "d3a5f78a-4e7a-45a0-9969-64ed1b801548",
+      "createdAt": "2026-07-15T14:50:02.421Z",
+      "name": "Мобільний телефон Samsung Galaxy A04 Black (SM-A045F/DS)",
+      "model": "SM-A045F/DS",
+      "invNumber": "",
+      "working": true,
+      "site": "Ігорівська",
+      "employeeId": "92999192-5912-48e9-8b23-a8ce56b393e7",
+      "specs": "",
+      "note": "№ п/п у Excel: 260\nРахунок 11",
+      "action": "",
+      "problems": "",
+      "updatedAt": "2026-07-15T14:50:02.421Z"
+    },
+    {
+      "id": "d371a85d-de4d-4e49-947c-34ae55a5b99b",
+      "createdAt": "2026-07-15T14:51:44.355Z",
+      "name": "Бездротова мишка M190",
+      "model": "M190",
+      "invNumber": "",
+      "working": true,
+      "site": "Ігорівська",
+      "employeeId": "fc8e4312-5e69-459f-8915-f17590c0d578",
       "specs": "",
       "note": "",
       "action": "",
       "problems": "",
-      "updatedAt": "2026-07-15T13:44:27.545Z"
+      "updatedAt": "2026-07-15T14:51:44.355Z"
+    },
+    {
+      "id": "9b181bc5-e6fb-445d-8afb-a4c1c5bcefbc",
+      "createdAt": "2026-07-15T14:54:07.224Z",
+      "name": "Планшет Samsung Galaxy",
+      "model": "IMEA: 357358",
+      "invNumber": "",
+      "working": true,
+      "site": "Ігорівська",
+      "employeeId": "fc8e4312-5e69-459f-8915-f17590c0d578",
+      "specs": "",
+      "note": "№ п/п у Excel: 300\nРахунок 11",
+      "action": "",
+      "problems": "",
+      "updatedAt": "2026-07-15T14:54:07.224Z"
     }
   ]
 }

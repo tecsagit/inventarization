@@ -6,3 +6,6 @@ config.js
 Thumbs.db
 __pycache__/
 *.pyc
+local-recovered.json
+
+*.pyc
