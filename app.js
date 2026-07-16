@@ -177,8 +177,12 @@
       supabaseClient.from("items").select("*"),
     ]);
 
-    if (employeesRes.error) throw employeesRes.error;
-    if (itemsRes.error) throw itemsRes.error;
+    if (employeesRes.error) {
+      throw new Error(`employees: ${employeesRes.error.message}`);
+    }
+    if (itemsRes.error) {
+      throw new Error(`items: ${itemsRes.error.message}`);
+    }
 
     return {
       employees: (employeesRes.data || []).map((row) => ({ id: row.id, name: row.name })),
@@ -316,14 +320,19 @@
 
         cloudReady = true;
         setupCloudRealtime();
-      } catch {
+      } catch (error) {
+        console.error("Supabase bootstrap failed:", error);
         state = loadStateLocal();
         sortEmployees();
-        showToast("Supabase недоступний — локальний режим");
+        const detail = error instanceof Error ? error.message : String(error);
+        showToast(`Supabase: ${detail}`, 6000);
       }
     } else {
       state = loadStateLocal();
       sortEmployees();
+      if (SUPABASE_URL || SUPABASE_ANON_KEY) {
+        showToast("Перевірте SUPABASE_URL та SUPABASE_ANON_KEY на Render", 5000);
+      }
     }
 
     renderAll();
@@ -344,11 +353,11 @@
     }
   }
 
-  function showToast(message) {
+  function showToast(message, duration = 2200) {
     els.toast.textContent = message;
     els.toast.classList.remove("hidden");
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => els.toast.classList.add("hidden"), 2200);
+    showToast._t = setTimeout(() => els.toast.classList.add("hidden"), duration);
   }
 
   function problemsText(value) {
