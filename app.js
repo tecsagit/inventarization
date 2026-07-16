@@ -298,6 +298,24 @@
     }
   }
 
+  async function mergeSeedMissingIntoCloud() {
+    const seeded = getSeedState();
+    if (!seeded || !supabaseClient || !cloudReady) return 0;
+
+    const itemIds = new Set(state.items.map((item) => item.id));
+    const employeeIds = new Set(state.employees.map((employee) => employee.id));
+    const missingItems = seeded.items.filter((item) => !itemIds.has(item.id));
+    const missingEmployees = seeded.employees.filter((employee) => !employeeIds.has(employee.id));
+
+    if (!missingItems.length && !missingEmployees.length) return 0;
+
+    state.items.push(...missingItems);
+    state.employees.push(...missingEmployees);
+    sortEmployees();
+    await syncStateToCloud();
+    return missingItems.length;
+  }
+
   async function bootstrap() {
     supabaseClient = initSupabaseClient();
 
@@ -316,7 +334,12 @@
           }
         } else {
           sortEmployees();
-          showToast("Дані завантажено з Supabase");
+          const added = await mergeSeedMissingIntoCloud();
+          showToast(
+            added > 0
+              ? `Дані з хмари + ${added} предметів з резерву`
+              : "Дані завантажено з Supabase"
+          );
         }
 
         cloudReady = true;

@@ -49,7 +49,20 @@ git push -u origin main
 - Якщо Supabase порожній — застосунок сам завантажить дані з `seed-data.js`.
 - Якщо в браузері вже є localStorage — на хостингу це не використовується; дані лише в Supabase.
 
-## 5. Локальна розробка з Supabase
+## 5. Імпорт / оновлення даних на сайті
+
+Якщо на сайті не вистачає предметів, виконай повний імпорт з `inventory-import.json`:
+
+```bash
+SUPABASE_URL=https://tuntrnuionupsrzgdjdl.supabase.co \
+SUPABASE_ANON_KEY=your_publishable_key \
+node scripts/import-to-supabase.mjs inventory-import.json
+```
+
+Або через Python (якщо немає Node.js) — попроси асистента виконати імпорт.
+
+Після деплою застосунок також автоматично додає **відсутні** предмети з `seed-data.js` при відкритті сайту.
+
 
 ```bash
 copy config.example.js config.js
