@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Інвентаризація техніки</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <p class="brand-name">Інвентар</p>
+          <p class="brand-sub">облік техніки та предметів</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-btn active" data-view="items" type="button">Предмети</button>
+        <button class="nav-btn" data-view="warehouse" type="button">Склад</button>
+        <button class="nav-btn" data-view="employees" type="button">Співробітники</button>
+      </nav>
+
+      <div class="sidebar-actions">
+        <button id="exportPdfBtn" class="btn ghost" type="button">Експорт PDF</button>
+        <button id="exportBtn" class="btn ghost" type="button">Експорт JSON</button>
+        <label class="btn ghost file-label">
+          Імпорт JSON
+          <input id="importInput" type="file" accept="application/json,.json" hidden />
+        </label>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="itemsView" class="view">
+        <header class="view-header">
+          <div>
+            <h1>Предмети</h1>
+            <p class="muted">Додайте техніку й інші предмети, закріпіть за співробітником.</p>
+          </div>
+          <button id="addItemBtn" class="btn primary" type="button">+ Додати предмет</button>
+        </header>
+
+        <div class="toolbar">
+          <input id="itemSearch" class="search" type="search" placeholder="Пошук за назвою, моделлю, інв. номером…" />
+          <select id="statusFilter" class="select">
+            <option value="all">Усі за станом</option>
+            <option value="ok">Справний</option>
+            <option value="broken">Несправний</option>
+          </select>
+          <select id="siteFilter" class="select">
+            <option value="all">Усі локації</option>
+            <option value="Загальний склад">Загальний склад</option>
+            <option value="Ігорівська">Ігорівська</option>
+            <option value="Автозаводська">Автозаводська</option>
+            <option value="Ірпінь">Ірпінь</option>
+          </select>
+          <select id="employeeFilter" class="select">
+            <option value="all">Усі (склад/ПБІ)</option>
+            <option value="warehouse">Тільки склад</option>
+            <option value="assigned">Тільки у співробітників</option>
+          </select>
+        </div>
+
+        <div id="itemsEmpty" class="empty hidden">
+          <h2>Поки немає предметів</h2>
+          <p>Натисніть «Додати предмет», щоб почати облік.</p>
+        </div>
+
+        <div id="itemsGrid" class="cards"></div>
+      </section>
+
+      <section id="warehouseView" class="view hidden">
+        <header class="view-header">
+          <div>
+            <h1>Склад</h1>
+            <p class="muted">Загальний склад — для подальшої відправки на локальні склади. Локальні — Ігорівська, Автозаводська, Ірпінь.</p>
+          </div>
+          <button id="addWarehouseItemBtn" class="btn primary" type="button">+ Додати на склад</button>
+        </header>
+
+        <div id="warehouseTabs" class="subtabs" role="tablist">
+          <button type="button" class="subtab active" data-warehouse-tab="Загальний склад">Загальний склад <span class="count" data-count-for="Загальний склад">0</span></button>
+          <button type="button" class="subtab" data-warehouse-tab="Ігорівська">Ігорівська <span class="count" data-count-for="Ігорівська">0</span></button>
+          <button type="button" class="subtab" data-warehouse-tab="Автозаводська">Автозаводська <span class="count" data-count-for="Автозаводська">0</span></button>
+          <button type="button" class="subtab" data-warehouse-tab="Ірпінь">Ірпінь <span class="count" data-count-for="Ірпінь">0</span></button>
+        </div>
+
+        <div class="toolbar warehouse-toolbar">
+          <input id="warehouseSearch" class="search" type="search" placeholder="Пошук по складу…" />
+          <select id="warehouseStatusFilter" class="select">
+            <option value="all">Усі за станом</option>
+            <option value="ok">Справний</option>
+            <option value="broken">Несправний</option>
+          </select>
+        </div>
+
+        <div id="warehouseEmpty" class="empty hidden">
+          <h2>Склад порожній</h2>
+          <p>Тут з’являться предмети без закріплення за співробітником.</p>
+        </div>
+
+        <div id="warehouseContent"></div>
+      </section>
+
+      <section id="employeesView" class="view hidden">
+        <header class="view-header">
+          <div>
+            <h1>Співробітники</h1>
+            <p class="muted">Список ПБІ. Натисніть «Предмети», щоб побачити що закріплено.</p>
+          </div>
+          <button id="addEmployeeBtn" class="btn primary" type="button">+ Додати ПБІ</button>
+        </header>
+
+        <div class="toolbar">
+          <input id="employeeSearch" class="search" type="search" placeholder="Пошук співробітника…" />
+        </div>
+
+        <div id="employeesEmpty" class="empty hidden">
+          <h2>Список порожній</h2>
+          <p>Спочатку додайте прізвище, ім’я та по батькові співробітників.</p>
+        </div>
+
+        <div id="employeesList" class="list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Item modal -->
+  <dialog id="itemModal" class="modal">
+    <form id="itemForm" method="dialog">
+      <header class="modal-header">
+        <h2 id="itemModalTitle">Новий предмет</h2>
+        <button type="button" class="icon-btn" data-close="itemModal" aria-label="Закрити">×</button>
+      </header>
+
+      <div class="modal-body">
+        <input type="hidden" id="itemId" />
+
+        <label class="field">
+          <span>Предмет / назва *</span>
+          <input id="itemName" required maxlength="200" placeholder="Наприклад: Ноутбук" />
+        </label>
+
+        <div class="grid-2">
+          <label class="field">
+            <span>Модель</span>
+            <input id="itemModel" maxlength="200" placeholder="Наприклад: Dell Latitude 5540" />
+          </label>
+          <label class="field">
+            <span>Інвентарний номер</span>
+            <input id="itemInvNumber" maxlength="100" placeholder="Інв. / серійний номер (необов’язково)" />
+          </label>
+        </div>
+
+        <div class="grid-2">
+          <label class="field">
+            <span>Справність *</span>
+            <select id="itemWorking" required>
+              <option value="true">Справний</option>
+              <option value="false">Несправний</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Місце знаходження *</span>
+            <select id="itemSite" required>
+              <option value="Загальний склад">Загальний склад</option>
+              <option value="Ігорівська">Ігорівська</option>
+              <option value="Автозаводська">Автозаводська</option>
+              <option value="Ірпінь">Ірпінь</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Закріплення (ПБІ або склад) *</span>
+          <select id="itemEmployee">
+            <option value="">Склад (ніким не використовується)</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Характеристики</span>
+          <textarea id="itemSpecs" rows="3" placeholder="Процесор, ОЗП, диск тощо"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Замітка</span>
+          <textarea id="itemNote" rows="2" placeholder="Додаткова інформація"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Що варто зробити з предметом</span>
+          <textarea id="itemAction" rows="2" placeholder="Наприклад: передати на склад, замінити батарею"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Проблеми</span>
+          <textarea id="itemProblems" rows="2" placeholder="Якщо порожньо — буде «проблеми не виявлено»"></textarea>
+        </label>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close="itemModal">Скасувати</button>
+        <button type="submit" class="btn primary">Зберегти</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Employee modal -->
+  <dialog id="employeeModal" class="modal">
+    <form id="employeeForm" method="dialog">
+      <header class="modal-header">
+        <h2 id="employeeModalTitle">Новий співробітник</h2>
+        <button type="button" class="icon-btn" data-close="employeeModal" aria-label="Закрити">×</button>
+      </header>
+
+      <div class="modal-body">
+        <input type="hidden" id="employeeId" />
+        <label class="field">
+          <span>ПБІ (прізвище, ім’я, по батькові) *</span>
+          <input id="employeeName" required maxlength="200" placeholder="Наприклад: Іваненко Іван Іванович" />
+        </label>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close="employeeModal">Скасувати</button>
+        <button type="submit" class="btn primary">Зберегти</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Assign from warehouse modal -->
+  <dialog id="assignModal" class="modal">
+    <form id="assignForm" method="dialog">
+      <header class="modal-header">
+        <h2>Вилучити зі складу</h2>
+        <button type="button" class="icon-btn" data-close="assignModal" aria-label="Закрити">×</button>
+      </header>
+      <div class="modal-body">
+        <input type="hidden" id="assignItemId" />
+        <p id="assignItemLabel" class="muted" style="margin:0"></p>
+        <label class="field">
+          <span>Закріпити за співробітником *</span>
+          <select id="assignEmployee" required>
+            <option value="">— оберіть ПБІ —</option>
+          </select>
+        </label>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close="assignModal">Скасувати</button>
+        <button type="submit" class="btn primary">Закріпити</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Send from general warehouse to local -->
+  <dialog id="transferModal" class="modal">
+    <form id="transferForm" method="dialog">
+      <header class="modal-header">
+        <h2>Надіслати на локальний склад</h2>
+        <button type="button" class="icon-btn" data-close="transferModal" aria-label="Закрити">×</button>
+      </header>
+      <div class="modal-body">
+        <input type="hidden" id="transferItemId" />
+        <p id="transferItemLabel" class="muted" style="margin:0"></p>
+        <label class="field">
+          <span>Локальний склад *</span>
+          <select id="transferSite" required>
+            <option value="">— оберіть локацію —</option>
+            <option value="Ігорівська">Ігорівська</option>
+            <option value="Автозаводська">Автозаводська</option>
+            <option value="Ірпінь">Ірпінь</option>
+          </select>
+        </label>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close="transferModal">Скасувати</button>
+        <button type="submit" class="btn primary">Надіслати</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Employee items modal -->
+  <dialog id="employeeItemsModal" class="modal modal-wide">
+    <div class="modal-panel">
+      <header class="modal-header">
+        <div>
+          <h2 id="employeeItemsTitle">Предмети співробітника</h2>
+          <p id="employeeItemsSub" class="muted modal-sub"></p>
+        </div>
+        <button type="button" class="icon-btn" data-close="employeeItemsModal" aria-label="Закрити">×</button>
+      </header>
+      <div class="modal-body">
+        <div id="employeeItemsEmpty" class="empty hidden">
+          <h2>Немає закріплених предметів</h2>
+          <p>За цим співробітником нічого не закріплено.</p>
+        </div>
+        <div id="employeeItemsGrid" class="cards"></div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn ghost" data-close="employeeItemsModal">Закрити</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.min.js"></script>
+  <script src="config.js"></script>
+  <script src="seed-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
