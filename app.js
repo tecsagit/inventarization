@@ -502,18 +502,56 @@
     "Проблеми",
   ];
 
+  function getFilteredEmployees() {
+    const q = els.employeeSearch.value.trim().toLowerCase();
+    return state.employees.filter((e) => e.name.toLowerCase().includes(q));
+  }
+
   function getExportScope() {
     if (currentView === "warehouse") {
+      const q = els.warehouseSearch.value.trim();
+      const status = els.warehouseStatusFilter.value;
+      const items = getFilteredWarehouseItems(warehouseTab);
+      const labelParts = [warehouseTab];
+      const slugParts = [warehouseTab];
+
+      if (q) {
+        labelParts.push(`«${q}»`);
+        slugParts.push(q);
+      }
+      if (status === "ok") {
+        labelParts.push("справні");
+        slugParts.push("spravni");
+      } else if (status === "broken") {
+        labelParts.push("несправні");
+        slugParts.push("nespravni");
+      }
+
       return {
-        label: warehouseTab,
-        fileSlug: warehouseTab,
-        items: warehouseItems()
-          .filter((item) => item.site === warehouseTab)
-          .sort((a, b) => a.name.localeCompare(b.name, "uk")),
+        label: labelParts.join(" · "),
+        fileSlug: slugParts.join("-"),
+        items,
       };
     }
 
     if (currentView === "employees") {
+      const q = els.employeeSearch.value.trim();
+      const matched = getFilteredEmployees();
+
+      if (q && matched.length) {
+        const ids = new Set(matched.map((employee) => employee.id));
+        return {
+          label:
+            matched.length === 1
+              ? `ПБІ: ${matched[0].name}`
+              : `ПБІ (${matched.length}) · «${q}»`,
+          fileSlug: matched.length === 1 ? matched[0].name : `pbi-${q}`,
+          items: state.items
+            .filter((item) => ids.has(item.employeeId))
+            .sort((a, b) => a.name.localeCompare(b.name, "uk")),
+        };
+      }
+
       return {
         label: "Закріплені предмети",
         fileSlug: "assigned",
@@ -523,21 +561,46 @@
       };
     }
 
+    const q = els.itemSearch.value.trim();
+    const status = els.statusFilter.value;
     const site = els.siteFilter.value;
-    if (site !== "all") {
-      return {
-        label: site,
-        fileSlug: site,
-        items: state.items
-          .filter((item) => item.site === site)
-          .sort((a, b) => a.name.localeCompare(b.name, "uk")),
-      };
+    const place = els.employeeFilter.value;
+    const items = getFilteredItems();
+    const labelParts = [];
+    const slugParts = [];
+
+    labelParts.push(site !== "all" ? site : "Усі локації");
+    slugParts.push(site !== "all" ? site : "all");
+
+    if (q) {
+      labelParts.push(`«${q}»`);
+      slugParts.push(q);
+    }
+    if (status === "ok") {
+      labelParts.push("справні");
+      slugParts.push("spravni");
+    } else if (status === "broken") {
+      labelParts.push("несправні");
+      slugParts.push("nespravni");
+    }
+    if (place === "warehouse") {
+      labelParts.push("склад");
+      slugParts.push("warehouse");
+    } else if (place === "assigned") {
+      labelParts.push("у ПБІ");
+      slugParts.push("assigned");
+    } else if (place !== "all") {
+      const emp = state.employees.find((employee) => employee.id === place);
+      if (emp) {
+        labelParts.push(emp.name);
+        slugParts.push(emp.name);
+      }
     }
 
     return {
-      label: "Усі локації",
-      fileSlug: "all",
-      items: [...state.items].sort((a, b) => a.name.localeCompare(b.name, "uk")),
+      label: labelParts.join(" · "),
+      fileSlug: slugParts.join("-"),
+      items,
     };
   }
 
@@ -581,7 +644,7 @@
     return [
       ["Інвентаризація техніки"],
       [`ТОВ ТЕКСА · ${dateStr}`],
-      [`Локація: ${scopeLabel}`],
+      [`Фільтр: ${scopeLabel}`],
       [],
     ];
   }
@@ -606,7 +669,7 @@
     const content = [
       { text: "Інвентаризація техніки", style: "header" },
       { text: `ТОВ ТЕКСА · ${dateStr}`, style: "subheader", margin: [0, 0, 0, 6] },
-      { text: `Локація: ${scopeLabel}`, style: "subheader", margin: [0, 0, 0, 6] },
+      { text: `Фільтр: ${scopeLabel}`, style: "subheader", margin: [0, 0, 0, 6] },
       { text: `Усього предметів: ${items.length}`, style: "muted", margin: [0, 0, 0, 14] },
       {
         table: {
@@ -657,7 +720,7 @@
 
     const { items, label, fileSlug } = getExportScope();
     if (!items.length) {
-      showToast("Немає предметів для експорту на цій сторінці");
+      showToast("Немає предметів для експорту за поточним фільтром");
       return;
     }
 
@@ -682,7 +745,7 @@
 
     const { items, label, fileSlug } = getExportScope();
     if (!items.length) {
-      showToast("Немає предметів для експорту на цій сторінці");
+      showToast("Немає предметів для експорту за поточним фільтром");
       return;
     }
 
@@ -954,8 +1017,7 @@
   }
 
   function renderEmployees() {
-    const q = els.employeeSearch.value.trim().toLowerCase();
-    const list = state.employees.filter((e) => e.name.toLowerCase().includes(q));
+    const list = getFilteredEmployees();
 
     els.employeesEmpty.classList.toggle("hidden", state.employees.length > 0);
     els.employeesList.innerHTML = "";
