@@ -90,6 +90,7 @@
     itemProblems: document.getElementById("itemProblems"),
     employeeId: document.getElementById("employeeId"),
     employeeName: document.getElementById("employeeName"),
+    syncCloudBtn: document.getElementById("syncCloudBtn"),
     exportBtn: document.getElementById("exportBtn"),
     exportPdfBtn: document.getElementById("exportPdfBtn"),
     exportExcelBtn: document.getElementById("exportExcelBtn"),
@@ -298,6 +299,96 @@
     }
   }
 
+  function itemTimestamp(item) {
+    const value = item.updatedAt || item.createdAt;
+    return value ? new Date(value).getTime() : 0;
+  }
+
+  function mergePreferNewer(localState, cloudState) {
+    const merged = {
+      employees: cloudState.employees.map((employee) => ({ ...employee })),
+      items: cloudState.items.map((item) => ({ ...item })),
+    };
+    const employeeById = new Map(merged.employees.map((employee) => [employee.id, employee]));
+    let changes = 0;
+
+    for (const localEmployee of localState.employees) {
+      const existing = employeeById.get(localEmployee.id);
+      if (!existing) {
+        merged.employees.push({ ...localEmployee });
+        employeeById.set(localEmployee.id, localEmployee);
+        changes += 1;
+        continue;
+      }
+      if (existing.name !== localEmployee.name) {
+        existing.name = localEmployee.name;
+        changes += 1;
+      }
+    }
+
+    const itemById = new Map(merged.items.map((item) => [item.id, item]));
+    for (const localItem of localState.items) {
+      const existing = itemById.get(localItem.id);
+      if (!existing) {
+        merged.items.push({ ...localItem });
+        itemById.set(localItem.id, localItem);
+        changes += 1;
+        continue;
+      }
+      if (itemTimestamp(localItem) >= itemTimestamp(existing)) {
+        const before = JSON.stringify(existing);
+        Object.assign(existing, localItem);
+        if (JSON.stringify(existing) !== before) changes += 1;
+      }
+    }
+
+    return { state: merged, changes };
+  }
+
+  async function mergeLocalIntoCloud() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw || !supabaseClient) return 0;
+
+    const local = loadStateLocal();
+    if (!local.items.length && !local.employees.length) return 0;
+
+    const { state: merged, changes } = mergePreferNewer(local, state);
+    if (!changes) return 0;
+
+    state = merged;
+    sortEmployees();
+    await syncStateToCloud();
+    return changes;
+  }
+
+  async function pushLocalToCloud() {
+    if (!supabaseClient) {
+      showToast("Supabase не налаштовано");
+      return;
+    }
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      showToast("Локальних даних не знайдено");
+      return;
+    }
+    if (!confirm("Завантажити локальні дані на сайт? Поточні зміни на сайті будуть оновлені.")) {
+      return;
+    }
+
+    els.syncCloudBtn.disabled = true;
+    try {
+      state = loadStateLocal();
+      sortEmployees();
+      cloudReady = true;
+      await syncStateToCloud();
+      renderAll();
+      showToast(`На сайт завантажено ${state.items.length} предметів`);
+    } catch {
+      showToast("Помилка завантаження на сайт");
+    } finally {
+      els.syncCloudBtn.disabled = false;
+    }
+  }
+
   async function mergeSeedMissingIntoCloud() {
     const seeded = getSeedState();
     if (!seeded || !supabaseClient || !cloudReady) return 0;
@@ -334,12 +425,15 @@
           }
         } else {
           sortEmployees();
-          const added = await mergeSeedMissingIntoCloud();
-          showToast(
-            added > 0
-              ? `Дані з хмари + ${added} предметів з резерву`
-              : "Дані завантажено з Supabase"
-          );
+          const localChanges = await mergeLocalIntoCloud();
+          const seedAdded = localChanges ? 0 : await mergeSeedMissingIntoCloud();
+          if (localChanges > 0) {
+            showToast(`Локальні зміни завантажено на сайт (${localChanges})`);
+          } else if (seedAdded > 0) {
+            showToast(`Дані з хмари + ${seedAdded} предметів з резерву`);
+          } else {
+            showToast("Дані завантажено з Supabase");
+          }
         }
 
         cloudReady = true;
@@ -1467,6 +1561,7 @@
   });
 
   // Export / import
+  els.syncCloudBtn?.addEventListener("click", pushLocalToCloud);
   els.exportPdfBtn.addEventListener("click", exportPdf);
   els.exportExcelBtn.addEventListener("click", exportExcel);
 
