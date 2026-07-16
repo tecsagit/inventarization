@@ -62,14 +62,21 @@ button, input, select, textarea {
 }
 
 .sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  height: 100dvh;
   padding: var(--pad) var(--space);
+  padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom, 0px));
   border-right: 1px solid var(--line);
-  background: rgba(247, 250, 252, 0.72);
+  background: rgba(247, 250, 252, 0.92);
   backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   gap: clamp(1rem, 2vw, 1.75rem);
   min-width: 0;
+  overflow: hidden;
 }
 
 .main {
@@ -113,6 +120,20 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar-actions {
+  flex: 0 0 auto;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  background: inherit;
 }
 
 .nav-btn {
@@ -135,13 +156,6 @@ button, input, select, textarea {
   background: rgba(15, 107, 107, 0.14);
   color: var(--primary);
   font-weight: 600;
-}
-
-.sidebar-actions {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .view-header {
@@ -649,6 +663,9 @@ button, input, select, textarea {
     position: sticky;
     top: 0;
     z-index: 20;
+    height: auto;
+    max-height: none;
+    overflow: visible;
     backdrop-filter: blur(12px);
   }
 

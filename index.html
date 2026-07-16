@@ -27,6 +27,7 @@
       </nav>
 
       <div class="sidebar-actions">
+        <button id="exportExcelBtn" class="btn ghost" type="button">Експорт Excel</button>
         <button id="exportPdfBtn" class="btn ghost" type="button">Експорт PDF</button>
         <button id="exportBtn" class="btn ghost" type="button">Експорт JSON</button>
         <label class="btn ghost file-label">
@@ -311,6 +312,7 @@
 
   <div id="toast" class="toast hidden" role="status"></div>
 
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.min.js"></script>

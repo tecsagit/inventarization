@@ -92,6 +92,7 @@
     employeeName: document.getElementById("employeeName"),
     exportBtn: document.getElementById("exportBtn"),
     exportPdfBtn: document.getElementById("exportPdfBtn"),
+    exportExcelBtn: document.getElementById("exportExcelBtn"),
     importInput: document.getElementById("importInput"),
     toast: document.getElementById("toast"),
   };
@@ -487,7 +488,21 @@
     return "Справний";
   }
 
-  function getPdfExportScope() {
+  const EXPORT_HEADERS = [
+    "№",
+    "Назва",
+    "Модель",
+    "Місце",
+    "За ким закріплений",
+    "Інв. номер",
+    "Стан",
+    "Характеристики",
+    "Замітка",
+    "Що зробити",
+    "Проблеми",
+  ];
+
+  function getExportScope() {
     if (currentView === "warehouse") {
       return {
         label: warehouseTab,
@@ -526,7 +541,7 @@
     };
   }
 
-  function pdfFileSlug(value) {
+  function exportFileSlug(value) {
     return String(value)
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -536,9 +551,39 @@
       .toLowerCase();
   }
 
-  function pdfCell(value) {
+  function exportCell(value) {
     const text = value == null ? "" : String(value).trim();
     return text || "—";
+  }
+
+  function itemExportRow(item, index) {
+    return [
+      index + 1,
+      exportCell(item.name),
+      exportCell(item.model),
+      pdfSiteLabel(item.site),
+      pdfAssigneeLabel(item.employeeId),
+      item.invNumber ? item.invNumber : "не вказано",
+      pdfStatusLabel(item),
+      exportCell(item.specs),
+      exportCell(item.note),
+      exportCell(item.action),
+      problemsText(item.problems),
+    ];
+  }
+
+  function exportMetaRows(scopeLabel) {
+    const dateStr = new Date().toLocaleDateString("uk-UA", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    return [
+      ["Інвентаризація техніки"],
+      [`ТОВ ТЕКСА · ${dateStr}`],
+      [`Локація: ${scopeLabel}`],
+      [],
+    ];
   }
 
   function buildPdfDocument(items, scopeLabel) {
@@ -548,33 +593,14 @@
       year: "numeric",
     });
 
-    const headerRow = [
-      { text: "№", style: "tableHeader" },
-      { text: "Назва", style: "tableHeader" },
-      { text: "Модель", style: "tableHeader" },
-      { text: "Місце", style: "tableHeader" },
-      { text: "За ким закріплений", style: "tableHeader" },
-      { text: "Інв. номер", style: "tableHeader" },
-      { text: "Стан", style: "tableHeader" },
-      { text: "Характеристики", style: "tableHeader" },
-      { text: "Замітка", style: "tableHeader" },
-      { text: "Що зробити", style: "tableHeader" },
-      { text: "Проблеми", style: "tableHeader" },
-    ];
+    const headerRow = EXPORT_HEADERS.map((text) => ({ text, style: "tableHeader" }));
 
-    const bodyRows = items.map((item, index) => [
-      { text: String(index + 1), style: "tableCellCenter" },
-      { text: pdfCell(item.name), style: "tableCell" },
-      { text: pdfCell(item.model), style: "tableCell" },
-      { text: pdfSiteLabel(item.site), style: "tableCell" },
-      { text: pdfAssigneeLabel(item.employeeId), style: "tableCell" },
-      { text: item.invNumber ? item.invNumber : "не вказано", style: "tableCell" },
-      { text: pdfStatusLabel(item), style: "tableCell" },
-      { text: pdfCell(item.specs), style: "tableCell" },
-      { text: pdfCell(item.note), style: "tableCell" },
-      { text: pdfCell(item.action), style: "tableCell" },
-      { text: problemsText(item.problems), style: "tableCell" },
-    ]);
+    const bodyRows = items.map((item, index) =>
+      itemExportRow(item, index).map((value, colIndex) => ({
+        text: String(value),
+        style: colIndex === 0 ? "tableCellCenter" : "tableCell",
+      }))
+    );
 
     /** @type {import('pdfmake/interfaces').Content[]} */
     const content = [
@@ -629,7 +655,7 @@
       return;
     }
 
-    const { items, label, fileSlug } = getPdfExportScope();
+    const { items, label, fileSlug } = getExportScope();
     if (!items.length) {
       showToast("Немає предметів для експорту на цій сторінці");
       return;
@@ -638,13 +664,59 @@
     els.exportPdfBtn.disabled = true;
     try {
       const date = new Date().toISOString().slice(0, 10);
-      const fileName = `inventory-${pdfFileSlug(fileSlug)}-${date}.pdf`;
+      const fileName = `inventory-${exportFileSlug(fileSlug)}-${date}.pdf`;
       pdfMake.createPdf(buildPdfDocument(items, label)).download(fileName);
       showToast(`PDF збережено (${label})`);
     } catch {
       showToast("Помилка створення PDF");
     } finally {
       els.exportPdfBtn.disabled = false;
+    }
+  }
+
+  function exportExcel() {
+    if (typeof XLSX === "undefined") {
+      showToast("Бібліотека Excel не завантажилась. Перевірте інтернет.");
+      return;
+    }
+
+    const { items, label, fileSlug } = getExportScope();
+    if (!items.length) {
+      showToast("Немає предметів для експорту на цій сторінці");
+      return;
+    }
+
+    els.exportExcelBtn.disabled = true;
+    try {
+      const rows = [
+        ...exportMetaRows(label),
+        EXPORT_HEADERS,
+        ...items.map((item, index) => itemExportRow(item, index)),
+      ];
+      const worksheet = XLSX.utils.aoa_to_sheet(rows);
+      worksheet["!cols"] = [
+        { wch: 4 },
+        { wch: 28 },
+        { wch: 22 },
+        { wch: 14 },
+        { wch: 24 },
+        { wch: 14 },
+        { wch: 16 },
+        { wch: 30 },
+        { wch: 22 },
+        { wch: 22 },
+        { wch: 28 },
+      ];
+      const workbook = XLSX.utils.book_new();
+      const sheetName = String(label).slice(0, 31) || "Інвентар";
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+      const date = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `inventory-${exportFileSlug(fileSlug)}-${date}.xlsx`);
+      showToast(`Excel збережено (${label})`);
+    } catch {
+      showToast("Помилка створення Excel");
+    } finally {
+      els.exportExcelBtn.disabled = false;
     }
   }
 
@@ -1311,6 +1383,7 @@
 
   // Export / import
   els.exportPdfBtn.addEventListener("click", exportPdf);
+  els.exportExcelBtn.addEventListener("click", exportExcel);
 
   els.exportBtn.addEventListener("click", () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
