@@ -18,8 +18,6 @@
     const activeCountEl = root.querySelector("#taskActiveCount");
     const pausedCountEl = root.querySelector("#taskPausedCount");
     const clearDoneBtn = root.querySelector("#taskClearDone");
-    const taskExportBtn = root.querySelector("#taskExportBtn");
-    const taskImportInput = root.querySelector("#taskImportInput");
     const filters = root.querySelectorAll(".task-filter");
     const hotFilter = root.querySelector("#taskHotFilter");
     const hotBadge = root.querySelector("#taskHotBadge");
@@ -126,20 +124,6 @@
 
     function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-    }
-
-    function importTasksFromList(list) {
-      const incoming = Array.isArray(list) ? list : list?.tasks;
-      if (!Array.isArray(incoming)) {
-        throw new Error("Невірний формат JSON");
-      }
-
-      const before = todos.length;
-      todos = mergeTaskLists(todos, incoming);
-      save();
-      render();
-      checkDeadlines();
-      return { before, after: todos.length, added: todos.length - before };
     }
 
     function pad(n) {
@@ -824,35 +808,6 @@
       todos = todos.filter((t) => !t.done);
       save();
       render();
-    });
-
-    taskExportBtn.addEventListener("click", () => {
-      const payload = {
-        version: "company-inventory-tasks-v1",
-        exportedAt: new Date().toISOString(),
-        tasks: todos,
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `tasks-${new Date().toISOString().slice(0, 10)}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    });
-
-    taskImportInput.addEventListener("change", async () => {
-      const file = taskImportInput.files?.[0];
-      taskImportInput.value = "";
-      if (!file) return;
-
-      try {
-        const parsed = JSON.parse(await file.text());
-        const result = importTasksFromList(parsed);
-        window.alert(`Синхронізовано: ${result.after} задач (було ${result.before}).`);
-      } catch (error) {
-        window.alert(`Не вдалось імпортувати: ${error.message || error}`);
-      }
     });
 
     notifyBtn.addEventListener("click", async () => {

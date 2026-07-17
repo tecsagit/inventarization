@@ -63,6 +63,7 @@ node scripts/import-to-supabase.mjs inventory-import.json
 
 Після деплою застосунок також автоматично додає **відсутні** предмети з `seed-data.js` при відкритті сайту.
 
+## 6. Локальна розробка з Supabase
 
 ```bash
 copy config.example.js config.js
