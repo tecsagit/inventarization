@@ -143,6 +143,20 @@
   gap: 0.35rem 0.65rem;
 }
 
+#tasksView .tasks-search-bar {
+  margin-bottom: 0.85rem;
+}
+
+#tasksView .tasks-search-bar .search {
+  width: 100%;
+}
+
+#tasksView .tasks-search-hint {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 #tasksView .tasks-sort-bar {
   display: flex;
   justify-content: flex-end;

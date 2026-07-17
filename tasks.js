@@ -22,6 +22,9 @@
     const hotFilter = root.querySelector("#taskHotFilter");
     const hotBadge = root.querySelector("#taskHotBadge");
     const sortSelect = root.querySelector("#taskSortSelect");
+    const taskSearchBar = root.querySelector("#taskSearchBar");
+    const taskDoneSearch = root.querySelector("#taskDoneSearch");
+    const taskSearchHint = root.querySelector("#taskSearchHint");
     const alerts = root.querySelector("#taskAlerts");
     const notifyBtn = root.querySelector("#taskNotifyBtn");
     const notifyStatus = root.querySelector("#taskNotifyStatus");
@@ -41,6 +44,7 @@
 
     let todos = load();
     let filter = "all";
+    let doneSearchQuery = "";
     let sortMode = localStorage.getItem("inventory-tasks-sort-mode") || "created-desc";
     let editingId = null;
     let extendingId = null;
@@ -224,6 +228,51 @@
       return items;
     }
 
+    function normalizeSearchTerm(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function digitsOnly(value) {
+      return String(value || "").replace(/\D/g, "");
+    }
+
+    function todoSearchHaystack(todo) {
+      const parts = [todo.text, todo.notes, todo.contact];
+      const timestamps = [todo.createdAt, completedAtOf(todo), todo.deadline].filter(Boolean);
+
+      timestamps.forEach((ts) => {
+        parts.push(formatDateTime(ts));
+        parts.push(formatDayHeading(ts));
+        const d = new Date(ts);
+        parts.push(String(d.getDate()));
+        parts.push(String(d.getFullYear()));
+        parts.push(
+          d.toLocaleDateString("uk-UA", { day: "numeric", month: "long", year: "numeric" })
+        );
+        parts.push(
+          d.toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })
+        );
+        parts.push(d.toLocaleDateString("uk-UA"));
+      });
+
+      return parts.join(" ").toLowerCase();
+    }
+
+    function matchesDoneSearch(todo, rawQuery) {
+      const query = normalizeSearchTerm(rawQuery);
+      if (!query) return true;
+
+      if (todoSearchHaystack(todo).includes(query)) return true;
+
+      const queryDigits = digitsOnly(rawQuery);
+      if (queryDigits.length >= 3) {
+        const sources = [todo.text, todo.notes, todo.contact].map(digitsOnly);
+        if (sources.some((digits) => digits.includes(queryDigits))) return true;
+      }
+
+      return false;
+    }
+
     function updateHotFilterUi(count) {
       if (count > 0) {
         hotFilter.classList.add("has-hot");
@@ -241,9 +290,39 @@
       if (filter === "active") list = todos.filter((t) => !t.done && !t.paused);
       else if (filter === "hot") list = hotTodos();
       else if (filter === "paused") list = todos.filter((t) => t.paused && !t.done);
-      else if (filter === "done") list = todos.filter((t) => t.done);
-      else list = todos.slice();
+      else if (filter === "done") {
+        list = todos.filter((t) => t.done);
+        if (doneSearchQuery) {
+          list = list.filter((t) => matchesDoneSearch(t, doneSearchQuery));
+        }
+      } else list = todos.slice();
       return sortTodos(list);
+    }
+
+    function updateDoneSearchUi(doneTotal, visibleCount) {
+      taskSearchBar.classList.toggle("hidden", filter !== "done");
+
+      if (filter !== "done") {
+        taskSearchHint.hidden = true;
+        return;
+      }
+
+      if (!doneSearchQuery) {
+        taskSearchHint.hidden = true;
+        return;
+      }
+
+      taskSearchHint.hidden = false;
+      if (visibleCount === 0) {
+        taskSearchHint.textContent = doneTotal
+          ? `За запитом «${doneSearchQuery}» нічого не знайдено`
+          : "";
+        return;
+      }
+
+      taskSearchHint.textContent = doneTotal === visibleCount
+        ? `Знайдено ${visibleCount}`
+        : `Знайдено ${visibleCount} з ${doneTotal}`;
     }
 
     function updateNotifyButton() {
@@ -310,12 +389,15 @@
       activeCountEl.textContent = pluralActive(activeCount);
       pausedCountEl.textContent = pluralPaused(pausedCount);
       updateHotFilterUi(hotCount);
+      updateDoneSearchUi(doneCount, visible.length);
       clearDoneBtn.hidden = doneCount === 0;
       empty.hidden = visible.length > 0;
       empty.textContent = filter === "hot"
         ? "Горящих задач немає — дедлайни далі ніж за 4 дні."
         : filter === "done"
-          ? "Поки немає виконаних задач."
+          ? doneSearchQuery
+            ? `За запитом «${doneSearchQuery}» нічого не знайдено.`
+            : "Поки немає виконаних задач."
           : "Поки порожньо — додайте першу задачу.";
       list.innerHTML = "";
       renderAlerts();
@@ -668,8 +750,22 @@
       btn.addEventListener("click", () => {
         filter = btn.dataset.filter;
         filters.forEach((b) => b.classList.toggle("active", b === btn));
+        if (filter !== "done") {
+          doneSearchQuery = "";
+          taskDoneSearch.value = "";
+        }
         render();
       });
+    });
+
+    taskDoneSearch.addEventListener("input", () => {
+      doneSearchQuery = taskDoneSearch.value;
+      render();
+    });
+
+    taskDoneSearch.addEventListener("search", () => {
+      doneSearchQuery = taskDoneSearch.value;
+      render();
     });
 
     sortSelect.addEventListener("change", () => {
