@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Синхронізація задач</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 520px;
+      margin: 3rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+    button, label.btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background: #0f6b6b;
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+    }
+    label.btn input { display: none; }
+    .muted { color: #666; }
+    .ok { color: #0f6b6b; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Синхронізація задач</h1>
+  <p class="muted">Оберіть файл <code>tasks-recovered.json</code> — задачі злитимуться з тим, що вже є у вашому браузері на цьому сайті.</p>
+  <label class="btn">
+    Обрати JSON
+    <input id="file" type="file" accept="application/json,.json" />
+  </label>
+  <p id="status"></p>
+  <p><a href="index.html">← Повернутись до інвентаря</a></p>
+
+  <script>
+    const STORAGE_KEY = "company-inventory-tasks-v1";
+    const LEGACY_KEYS = ["focus-todolist-v2", "focus-todolist-v1"];
+
+    function normalize(todo) {
+      return {
+        id: todo.id || Date.now().toString(36),
+        text: todo.text || "",
+        notes: typeof todo.notes === "string" ? todo.notes : "",
+        contact: typeof todo.contact === "string" ? todo.contact : "",
+        done: Boolean(todo.done),
+        createdAt: todo.createdAt || Date.now(),
+        completedAt: todo.completedAt ?? (todo.done ? (todo.createdAt || Date.now()) : null),
+        deadline: todo.deadline ?? null,
+        paused: Boolean(todo.paused),
+        pauseRemainingMs: todo.pauseRemainingMs ?? null,
+        notifiedSoon: Boolean(todo.notifiedSoon),
+        notifiedOverdue: Boolean(todo.notifiedOverdue),
+      };
+    }
+
+    function score(todo) {
+      let s = 0;
+      for (const key of ["notes", "contact", "deadline", "completedAt", "createdAt"]) {
+        if (todo[key]) s += 1;
+      }
+      if (todo.done) s += 1;
+      return s;
+    }
+
+    function loadCurrent() {
+      const keys = [STORAGE_KEY, ...LEGACY_KEYS];
+      const map = new Map();
+      keys.forEach((key) => {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return;
+          parsed.map(normalize).forEach((todo) => {
+            const prev = map.get(todo.id);
+            if (!prev || score(todo) >= score(prev)) map.set(todo.id, todo);
+          });
+        } catch {}
+      });
+      return [...map.values()];
+    }
+
+    function mergeLists(current, incoming) {
+      const map = new Map(current.map((todo) => [todo.id, todo]));
+      incoming.map(normalize).forEach((todo) => {
+        const prev = map.get(todo.id);
+        if (!prev || score(todo) >= score(prev)) map.set(todo.id, todo);
+      });
+      return [...map.values()].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+
+    document.getElementById("file").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      const status = document.getElementById("status");
+      if (!file) return;
+
+      try {
+        const incoming = JSON.parse(await file.text());
+        const list = Array.isArray(incoming) ? incoming : incoming.tasks;
+        if (!Array.isArray(list)) throw new Error("Невірний формат JSON");
+
+        const before = loadCurrent();
+        const merged = mergeLists(before, list);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+        LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
+
+        status.innerHTML = `<span class="ok">Готово:</span> було ${before.length}, стало ${merged.length} задач. <a href="index.html">Відкрити інвентар</a>`;
+      } catch (error) {
+        status.textContent = "Помилка: " + (error.message || error);
+      }
+    });
+  </script>
+</body>
+</html>

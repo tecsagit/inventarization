@@ -342,6 +342,8 @@
   margin-top: 1rem;
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 #tasksView .tasks-notify-wrap {

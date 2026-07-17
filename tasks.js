@@ -18,6 +18,8 @@
     const activeCountEl = root.querySelector("#taskActiveCount");
     const pausedCountEl = root.querySelector("#taskPausedCount");
     const clearDoneBtn = root.querySelector("#taskClearDone");
+    const taskExportBtn = root.querySelector("#taskExportBtn");
+    const taskImportInput = root.querySelector("#taskImportInput");
     const filters = root.querySelectorAll(".task-filter");
     const hotFilter = root.querySelector("#taskHotFilter");
     const hotBadge = root.querySelector("#taskHotBadge");
@@ -71,22 +73,52 @@
       };
     }
 
+    function taskRichness(todo) {
+      let score = 0;
+      for (const key of ["notes", "contact", "deadline", "completedAt", "createdAt"]) {
+        if (todo[key]) score += 1;
+      }
+      if (todo.done) score += 1;
+      return score;
+    }
+
+    function mergeTaskLists(current, incoming) {
+      const map = new Map(current.map((todo) => [todo.id, todo]));
+      incoming.map(normalize).forEach((todo) => {
+        const prev = map.get(todo.id);
+        if (!prev || taskRichness(todo) >= taskRichness(prev)) {
+          map.set(todo.id, todo);
+        }
+      });
+      return [...map.values()].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+
     function load() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
+        const map = new Map();
+
+        const readKey = (key) => {
+          const raw = localStorage.getItem(key);
+          if (!raw) return;
           const parsed = JSON.parse(raw);
-          return Array.isArray(parsed) ? parsed.map(normalize) : [];
-        }
-        for (const legacyKey of LEGACY_KEYS) {
-          const legacyRaw = localStorage.getItem(legacyKey);
-          if (!legacyRaw) continue;
-          const migrated = JSON.parse(legacyRaw);
-          const list = Array.isArray(migrated) ? migrated.map(normalize) : [];
+          if (!Array.isArray(parsed)) return;
+          parsed.map(normalize).forEach((todo) => {
+            const prev = map.get(todo.id);
+            if (!prev || taskRichness(todo) >= taskRichness(prev)) {
+              map.set(todo.id, todo);
+            }
+          });
+        };
+
+        readKey(STORAGE_KEY);
+        LEGACY_KEYS.forEach(readKey);
+
+        const list = [...map.values()].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        if (list.length) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-          return list;
+          LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
         }
-        return [];
+        return list;
       } catch {
         return [];
       }
@@ -94,6 +126,20 @@
 
     function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+    }
+
+    function importTasksFromList(list) {
+      const incoming = Array.isArray(list) ? list : list?.tasks;
+      if (!Array.isArray(incoming)) {
+        throw new Error("Невірний формат JSON");
+      }
+
+      const before = todos.length;
+      todos = mergeTaskLists(todos, incoming);
+      save();
+      render();
+      checkDeadlines();
+      return { before, after: todos.length, added: todos.length - before };
     }
 
     function pad(n) {
@@ -778,6 +824,35 @@
       todos = todos.filter((t) => !t.done);
       save();
       render();
+    });
+
+    taskExportBtn.addEventListener("click", () => {
+      const payload = {
+        version: "company-inventory-tasks-v1",
+        exportedAt: new Date().toISOString(),
+        tasks: todos,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `tasks-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    taskImportInput.addEventListener("change", async () => {
+      const file = taskImportInput.files?.[0];
+      taskImportInput.value = "";
+      if (!file) return;
+
+      try {
+        const parsed = JSON.parse(await file.text());
+        const result = importTasksFromList(parsed);
+        window.alert(`Синхронізовано: ${result.after} задач (було ${result.before}).`);
+      } catch (error) {
+        window.alert(`Не вдалось імпортувати: ${error.message || error}`);
+      }
     });
 
     notifyBtn.addEventListener("click", async () => {
