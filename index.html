@@ -27,7 +27,6 @@
       </nav>
 
       <div class="sidebar-actions">
-        <button id="syncCloudBtn" class="btn primary" type="button">На сайт</button>
         <button id="exportExcelBtn" class="btn ghost" type="button">Експорт Excel</button>
         <button id="exportPdfBtn" class="btn ghost" type="button">Експорт PDF</button>
         <button id="exportBtn" class="btn ghost" type="button">Експорт JSON</button>
@@ -49,7 +48,12 @@
         </header>
 
         <div class="toolbar">
-          <input id="itemSearch" class="search" type="search" placeholder="Пошук за назвою, моделлю, інв. номером…" />
+          <div class="search-multi" id="itemSearchBox">
+            <div class="search-multi-field">
+              <div id="itemSearchChips" class="search-chips"></div>
+              <input id="itemSearch" class="search-input" type="text" placeholder="Ключове слово… Enter — наступне" autocomplete="off" />
+            </div>
+          </div>
           <select id="statusFilter" class="select">
             <option value="all">Усі за станом</option>
             <option value="ok">Справний</option>
@@ -94,7 +98,12 @@
         </div>
 
         <div class="toolbar warehouse-toolbar">
-          <input id="warehouseSearch" class="search" type="search" placeholder="Пошук по складу…" />
+          <div class="search-multi" id="warehouseSearchBox">
+            <div class="search-multi-field">
+              <div id="warehouseSearchChips" class="search-chips"></div>
+              <input id="warehouseSearch" class="search-input" type="text" placeholder="Ключове слово… Enter — наступне" autocomplete="off" />
+            </div>
+          </div>
           <select id="warehouseStatusFilter" class="select">
             <option value="all">Усі за станом</option>
             <option value="ok">Справний</option>

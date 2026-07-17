@@ -302,9 +302,75 @@ button, input, select, textarea {
   outline: none;
 }
 
-.search:focus, .select:focus, .field input:focus, .field select:focus, .field textarea:focus {
+.search:focus, .select:focus, .field input:focus, .field select:focus, .field textarea:focus,
+.search-input:focus, .search-multi-field:focus-within {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(15, 107, 107, 0.15);
+}
+
+.search-multi {
+  min-width: 0;
+}
+
+.search-multi-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.search-chips {
+  display: contents;
+}
+
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(15, 107, 107, 0.12);
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.search-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-chip-remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.search-chip-remove:hover {
+  opacity: 1;
+}
+
+.search-input {
+  flex: 1 1 120px;
+  min-width: 120px;
+  border: 0;
+  background: transparent;
+  padding: 4px 6px;
+  outline: none;
 }
 
 .field textarea {

@@ -34,6 +34,11 @@
   /** @type {"items"|"warehouse"|"employees"} */
   let currentView = "items";
 
+  /** @type {string[]} */
+  let itemSearchTerms = [];
+  /** @type {string[]} */
+  let warehouseSearchTerms = [];
+
   const els = {
     itemsView: document.getElementById("itemsView"),
     warehouseView: document.getElementById("warehouseView"),
@@ -47,10 +52,12 @@
     employeesList: document.getElementById("employeesList"),
     employeesEmpty: document.getElementById("employeesEmpty"),
     itemSearch: document.getElementById("itemSearch"),
+    itemSearchChips: document.getElementById("itemSearchChips"),
     statusFilter: document.getElementById("statusFilter"),
     siteFilter: document.getElementById("siteFilter"),
     employeeFilter: document.getElementById("employeeFilter"),
     warehouseSearch: document.getElementById("warehouseSearch"),
+    warehouseSearchChips: document.getElementById("warehouseSearchChips"),
     warehouseStatusFilter: document.getElementById("warehouseStatusFilter"),
     employeeSearch: document.getElementById("employeeSearch"),
     addItemBtn: document.getElementById("addItemBtn"),
@@ -90,7 +97,6 @@
     itemProblems: document.getElementById("itemProblems"),
     employeeId: document.getElementById("employeeId"),
     employeeName: document.getElementById("employeeName"),
-    syncCloudBtn: document.getElementById("syncCloudBtn"),
     exportBtn: document.getElementById("exportBtn"),
     exportPdfBtn: document.getElementById("exportPdfBtn"),
     exportExcelBtn: document.getElementById("exportExcelBtn"),
@@ -299,96 +305,6 @@
     }
   }
 
-  function itemTimestamp(item) {
-    const value = item.updatedAt || item.createdAt;
-    return value ? new Date(value).getTime() : 0;
-  }
-
-  function mergePreferNewer(localState, cloudState) {
-    const merged = {
-      employees: cloudState.employees.map((employee) => ({ ...employee })),
-      items: cloudState.items.map((item) => ({ ...item })),
-    };
-    const employeeById = new Map(merged.employees.map((employee) => [employee.id, employee]));
-    let changes = 0;
-
-    for (const localEmployee of localState.employees) {
-      const existing = employeeById.get(localEmployee.id);
-      if (!existing) {
-        merged.employees.push({ ...localEmployee });
-        employeeById.set(localEmployee.id, localEmployee);
-        changes += 1;
-        continue;
-      }
-      if (existing.name !== localEmployee.name) {
-        existing.name = localEmployee.name;
-        changes += 1;
-      }
-    }
-
-    const itemById = new Map(merged.items.map((item) => [item.id, item]));
-    for (const localItem of localState.items) {
-      const existing = itemById.get(localItem.id);
-      if (!existing) {
-        merged.items.push({ ...localItem });
-        itemById.set(localItem.id, localItem);
-        changes += 1;
-        continue;
-      }
-      if (itemTimestamp(localItem) >= itemTimestamp(existing)) {
-        const before = JSON.stringify(existing);
-        Object.assign(existing, localItem);
-        if (JSON.stringify(existing) !== before) changes += 1;
-      }
-    }
-
-    return { state: merged, changes };
-  }
-
-  async function mergeLocalIntoCloud() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw || !supabaseClient) return 0;
-
-    const local = loadStateLocal();
-    if (!local.items.length && !local.employees.length) return 0;
-
-    const { state: merged, changes } = mergePreferNewer(local, state);
-    if (!changes) return 0;
-
-    state = merged;
-    sortEmployees();
-    await syncStateToCloud();
-    return changes;
-  }
-
-  async function pushLocalToCloud() {
-    if (!supabaseClient) {
-      showToast("Supabase не налаштовано");
-      return;
-    }
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      showToast("Локальних даних не знайдено");
-      return;
-    }
-    if (!confirm("Завантажити локальні дані на сайт? Поточні зміни на сайті будуть оновлені.")) {
-      return;
-    }
-
-    els.syncCloudBtn.disabled = true;
-    try {
-      state = loadStateLocal();
-      sortEmployees();
-      cloudReady = true;
-      await syncStateToCloud();
-      renderAll();
-      showToast(`На сайт завантажено ${state.items.length} предметів`);
-    } catch {
-      showToast("Помилка завантаження на сайт");
-    } finally {
-      els.syncCloudBtn.disabled = false;
-    }
-  }
-
   async function mergeSeedMissingIntoCloud() {
     const seeded = getSeedState();
     if (!seeded || !supabaseClient || !cloudReady) return 0;
@@ -425,15 +341,12 @@
           }
         } else {
           sortEmployees();
-          const localChanges = await mergeLocalIntoCloud();
-          const seedAdded = localChanges ? 0 : await mergeSeedMissingIntoCloud();
-          if (localChanges > 0) {
-            showToast(`Локальні зміни завантажено на сайт (${localChanges})`);
-          } else if (seedAdded > 0) {
-            showToast(`Дані з хмари + ${seedAdded} предметів з резерву`);
-          } else {
-            showToast("Дані завантажено з Supabase");
-          }
+          const added = await mergeSeedMissingIntoCloud();
+          showToast(
+            added > 0
+              ? `Дані з хмари + ${added} предметів з резерву`
+              : "Дані завантажено з Supabase"
+          );
         }
 
         cloudReady = true;
@@ -626,15 +539,15 @@
 
   function getExportScope() {
     if (currentView === "warehouse") {
-      const q = els.warehouseSearch.value.trim();
+      const searchLabel = searchTermsLabel(warehouseSearchTerms, els.warehouseSearch);
       const status = els.warehouseStatusFilter.value;
       const items = getFilteredWarehouseItems(warehouseTab);
       const labelParts = [warehouseTab];
       const slugParts = [warehouseTab];
 
-      if (q) {
-        labelParts.push(`«${q}»`);
-        slugParts.push(q);
+      if (searchLabel) {
+        labelParts.push(searchLabel);
+        slugParts.push(searchLabel.replace(/\s+/g, "-"));
       }
       if (status === "ok") {
         labelParts.push("справні");
@@ -678,7 +591,7 @@
       };
     }
 
-    const q = els.itemSearch.value.trim();
+    const searchLabel = searchTermsLabel(itemSearchTerms, els.itemSearch);
     const status = els.statusFilter.value;
     const site = els.siteFilter.value;
     const place = els.employeeFilter.value;
@@ -689,9 +602,9 @@
     labelParts.push(site !== "all" ? site : "Усі локації");
     slugParts.push(site !== "all" ? site : "all");
 
-    if (q) {
-      labelParts.push(`«${q}»`);
-      slugParts.push(q);
+    if (searchLabel) {
+      labelParts.push(searchLabel);
+      slugParts.push(searchLabel.replace(/\s+/g, "-"));
     }
     if (status === "ok") {
       labelParts.push("справні");
@@ -920,8 +833,78 @@
     els.employeesView.classList.toggle("hidden", view !== "employees");
   }
 
-  function matchesQuery(item, q) {
-    if (!q) return true;
+  function normalizeSearchTerm(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function getActiveSearchTerms(terms, inputEl) {
+    const current = normalizeSearchTerm(inputEl.value);
+    const committed = terms.map(normalizeSearchTerm).filter(Boolean);
+    return current ? [...committed, current] : committed;
+  }
+
+  function searchTermsLabel(terms, inputEl) {
+    const active = getActiveSearchTerms(terms, inputEl);
+    if (!active.length) return "";
+    return active.map((term) => `«${term}»`).join(" + ");
+  }
+
+  function renderSearchChips(terms, chipsEl, inputEl, onChange) {
+    chipsEl.innerHTML = terms
+      .map(
+        (term, index) => `
+          <span class="search-chip">
+            <span class="search-chip-text">${escapeHtml(term)}</span>
+            <button class="search-chip-remove" type="button" data-chip-index="${index}" aria-label="Прибрати">×</button>
+          </span>
+        `
+      )
+      .join("");
+
+    chipsEl.querySelectorAll("[data-chip-index]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const index = Number(btn.getAttribute("data-chip-index"));
+        if (Number.isNaN(index)) return;
+        terms.splice(index, 1);
+        renderSearchChips(terms, chipsEl, inputEl, onChange);
+        onChange();
+      });
+    });
+  }
+
+  function initMultiSearch(inputEl, chipsEl, terms, onChange) {
+    const commitTerm = () => {
+      const term = inputEl.value.trim();
+      if (!term) return;
+      const normalized = normalizeSearchTerm(term);
+      if (!terms.some((existing) => normalizeSearchTerm(existing) === normalized)) {
+        terms.push(term.trim());
+      }
+      inputEl.value = "";
+      renderSearchChips(terms, chipsEl, inputEl, onChange);
+      onChange();
+    };
+
+    inputEl.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commitTerm();
+        return;
+      }
+      if (event.key === "Backspace" && !inputEl.value && terms.length) {
+        terms.pop();
+        renderSearchChips(terms, chipsEl, inputEl, onChange);
+        onChange();
+      }
+    });
+
+    inputEl.addEventListener("input", onChange);
+  }
+
+  function matchesQuery(item, terms) {
+    const activeTerms = Array.isArray(terms) ? terms : [terms].filter(Boolean);
+    if (!activeTerms.length) return true;
+
     const hay = [
       item.name,
       item.model,
@@ -935,11 +918,12 @@
     ]
       .join(" ")
       .toLowerCase();
-    return hay.includes(q);
+
+    return activeTerms.every((term) => hay.includes(normalizeSearchTerm(term)));
   }
 
   function getFilteredItems() {
-    const q = els.itemSearch.value.trim().toLowerCase();
+    const terms = getActiveSearchTerms(itemSearchTerms, els.itemSearch);
     const status = els.statusFilter.value;
     const site = els.siteFilter.value;
     const place = els.employeeFilter.value;
@@ -954,13 +938,13 @@
         if (place !== "all" && place !== "warehouse" && place !== "assigned" && item.employeeId !== place) {
           return false;
         }
-        return matchesQuery(item, q);
+        return matchesQuery(item, terms);
       })
       .sort((a, b) => a.name.localeCompare(b.name, "uk"));
   }
 
   function getFilteredWarehouseItems(siteFilter = "all") {
-    const q = els.warehouseSearch.value.trim().toLowerCase();
+    const terms = getActiveSearchTerms(warehouseSearchTerms, els.warehouseSearch);
     const status = els.warehouseStatusFilter.value;
 
     return warehouseItems()
@@ -968,7 +952,7 @@
         if (status === "ok" && !item.working) return false;
         if (status === "broken" && item.working) return false;
         if (siteFilter !== "all" && item.site !== siteFilter) return false;
-        return matchesQuery(item, q);
+        return matchesQuery(item, terms);
       })
       .sort((a, b) => a.name.localeCompare(b.name, "uk"));
   }
@@ -1000,7 +984,8 @@
 
     const items = getFilteredWarehouseItems(warehouseTab);
     const hasSearchOrFilter =
-      !!els.warehouseSearch.value.trim() || els.warehouseStatusFilter.value !== "all";
+      getActiveSearchTerms(warehouseSearchTerms, els.warehouseSearch).length > 0 ||
+      els.warehouseStatusFilter.value !== "all";
     const isGeneral = warehouseTab === GENERAL_SITE;
 
     if (!items.length) {
@@ -1319,14 +1304,15 @@
   });
 
   // Filters
-  [els.itemSearch, els.statusFilter, els.siteFilter, els.employeeFilter].forEach((el) => {
+  initMultiSearch(els.itemSearch, els.itemSearchChips, itemSearchTerms, renderItems);
+  initMultiSearch(els.warehouseSearch, els.warehouseSearchChips, warehouseSearchTerms, renderWarehouse);
+
+  [els.statusFilter, els.siteFilter, els.employeeFilter].forEach((el) => {
     el.addEventListener("input", renderItems);
     el.addEventListener("change", renderItems);
   });
-  [els.warehouseSearch, els.warehouseStatusFilter].forEach((el) => {
-    el.addEventListener("input", renderWarehouse);
-    el.addEventListener("change", renderWarehouse);
-  });
+  els.warehouseStatusFilter.addEventListener("input", renderWarehouse);
+  els.warehouseStatusFilter.addEventListener("change", renderWarehouse);
   els.employeeSearch.addEventListener("input", renderEmployees);
 
   els.warehouseTabs.addEventListener("click", (e) => {
@@ -1561,7 +1547,6 @@
   });
 
   // Export / import
-  els.syncCloudBtn?.addEventListener("click", pushLocalToCloud);
   els.exportPdfBtn.addEventListener("click", exportPdf);
   els.exportExcelBtn.addEventListener("click", exportExcel);
 
