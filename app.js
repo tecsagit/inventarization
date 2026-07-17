@@ -43,6 +43,7 @@
     itemsView: document.getElementById("itemsView"),
     warehouseView: document.getElementById("warehouseView"),
     employeesView: document.getElementById("employeesView"),
+    tasksView: document.getElementById("tasksView"),
     navBtns: [...document.querySelectorAll(".nav-btn")],
     itemsGrid: document.getElementById("itemsGrid"),
     itemsEmpty: document.getElementById("itemsEmpty"),
@@ -831,6 +832,7 @@
     els.itemsView.classList.toggle("hidden", view !== "items");
     els.warehouseView.classList.toggle("hidden", view !== "warehouse");
     els.employeesView.classList.toggle("hidden", view !== "employees");
+    els.tasksView.classList.toggle("hidden", view !== "tasks");
   }
 
   function normalizeSearchTerm(value) {

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="tasks.css" />
 </head>
 <body>
   <div class="app">
@@ -24,6 +25,7 @@
         <button class="nav-btn active" data-view="items" type="button">Предмети</button>
         <button class="nav-btn" data-view="warehouse" type="button">Склад</button>
         <button class="nav-btn" data-view="employees" type="button">Співробітники</button>
+        <button class="nav-btn" data-view="tasks" type="button">Планувальник задач</button>
       </nav>
 
       <div class="sidebar-actions">
@@ -138,6 +140,117 @@
         </div>
 
         <div id="employeesList" class="list"></div>
+      </section>
+
+      <section id="tasksView" class="view hidden">
+        <header class="view-header">
+          <div>
+            <h1>Планувальник задач</h1>
+            <p class="muted">Особистий список справ з дедлайнами. Дані зберігаються лише у вашому браузері.</p>
+          </div>
+        </header>
+
+        <div class="tasks-shell">
+          <div class="tasks-alerts" id="taskAlerts" aria-live="polite"></div>
+
+          <form class="tasks-composer" id="taskForm">
+            <input class="tasks-input" id="taskInput" type="text" placeholder="Що потрібно зробити?" maxlength="200" autocomplete="off" />
+            <button class="btn primary" type="submit">Додати</button>
+          </form>
+
+          <div class="tasks-composer-meta">
+            <div>
+              <p class="tasks-field-label">Дедлайн (необовʼязково)</p>
+              <input class="tasks-input" id="taskDeadlineInput" type="datetime-local" />
+            </div>
+            <div class="tasks-notify-wrap">
+              <button type="button" class="btn ghost tasks-notify-btn" id="taskNotifyBtn">Увімкнути сповіщення</button>
+              <p class="tasks-notify-status" id="taskNotifyStatus">Натисніть і оберіть «Дозволити»</p>
+            </div>
+          </div>
+
+          <div class="tasks-toolbar">
+            <div class="tasks-filters" role="tablist" aria-label="Фільтр задач">
+              <button type="button" class="task-filter active" data-filter="all">Усі</button>
+              <button type="button" class="task-filter" data-filter="active">Активні</button>
+              <button type="button" class="task-filter task-filter-hot" data-filter="hot" id="taskHotFilter">
+                <span class="task-filter-hot-label">Горящі</span>
+                <span class="task-hot-badge" id="taskHotBadge" hidden>0</span>
+              </button>
+              <button type="button" class="task-filter" data-filter="paused">На паузі</button>
+              <button type="button" class="task-filter" data-filter="done">Виконані</button>
+            </div>
+            <div class="tasks-meta" id="taskCount">
+              <span id="taskActiveCount">0 активних</span>
+              <span aria-hidden="true">·</span>
+              <span id="taskPausedCount">0 на паузі</span>
+            </div>
+          </div>
+
+          <div class="tasks-sort-bar">
+            <label>
+              Сортування
+              <select class="select" id="taskSortSelect" aria-label="Сортування задач">
+                <option value="created-desc">За створенням ↓ новіші</option>
+                <option value="created-asc">За створенням ↑ старіші</option>
+                <option value="deadline-asc">За дедлайном ↑ ближчі</option>
+                <option value="deadline-desc">За дедлайном ↓ далі</option>
+              </select>
+            </label>
+          </div>
+
+          <ul class="tasks-list" id="taskList" aria-live="polite"></ul>
+          <p class="empty" id="taskEmpty" hidden>Поки порожньо — додайте першу задачу.</p>
+
+          <div class="tasks-footer-actions">
+            <button type="button" class="btn ghost" id="taskClearDone" hidden>Очистити виконані</button>
+          </div>
+        </div>
+
+        <div class="tasks-overlay" id="taskEditOverlay" hidden>
+          <div class="tasks-modal" role="dialog" aria-modal="true" aria-labelledby="taskEditTitle">
+            <h2 id="taskEditTitle">Редагувати</h2>
+            <div class="field">
+              <label for="taskEditText">Текст задачі</label>
+              <input class="tasks-input" id="taskEditText" type="text" maxlength="200" />
+            </div>
+            <div class="field">
+              <label for="taskEditNotes">Нотатки</label>
+              <textarea class="tasks-textarea" id="taskEditNotes" maxlength="2000" placeholder="Деталі, посилання, нагадування…"></textarea>
+            </div>
+            <div class="field">
+              <label for="taskEditContact">Контактні дані</label>
+              <input class="tasks-input" id="taskEditContact" type="text" maxlength="300" placeholder="Телефон, пошта, Telegram…" />
+            </div>
+            <div class="field">
+              <label for="taskEditDeadline">Дедлайн</label>
+              <input class="tasks-input" id="taskEditDeadline" type="datetime-local" />
+            </div>
+            <div class="tasks-modal-actions">
+              <button type="button" class="btn ghost" id="taskEditCancel">Скасувати</button>
+              <button type="button" class="btn primary" id="taskEditSave">Зберегти</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tasks-overlay" id="taskExtendOverlay" hidden>
+          <div class="tasks-modal" role="dialog" aria-modal="true" aria-labelledby="taskExtendTitle">
+            <h2 id="taskExtendTitle">Подовжити дедлайн</h2>
+            <div class="tasks-extend-row">
+              <button type="button" class="btn ghost" data-extend-days="1">+1 день</button>
+              <button type="button" class="btn ghost" data-extend-days="3">+3 дні</button>
+              <button type="button" class="btn ghost" data-extend-days="7">+7 днів</button>
+            </div>
+            <div class="field">
+              <label for="taskExtendCustom">Або своя кількість днів</label>
+              <input class="tasks-input" id="taskExtendCustom" type="number" min="1" max="365" placeholder="Наприклад, 5" />
+            </div>
+            <div class="tasks-modal-actions">
+              <button type="button" class="btn ghost" id="taskExtendCancel">Скасувати</button>
+              <button type="button" class="btn primary" id="taskExtendSave">Подовжити</button>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
   </div>
@@ -328,6 +441,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.min.js"></script>
   <script src="config.js"></script>
   <script src="seed-data.js"></script>
+  <script src="tasks.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
